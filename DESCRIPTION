@@ -1,0 +1,14 @@
+Package: perms
+Type: Package
+Title: Fast permutation computation
+Version: 1.8
+Date: 11 August 2023
+Author: Dennis  Christensen, Per August Jarval Moen
+Maintainer: Per August Moen <pamoen@math.uio.no>
+Description: Module for computing permanents of block rectangular matrices
+License: BSD_2_clause
+Encoding: UTF-8
+RoxygenNote: 7.1.2
+Imports: mclust, MASS, Rdpack
+Depends: foreach, doParallel
+RdMacros: Rdpack
