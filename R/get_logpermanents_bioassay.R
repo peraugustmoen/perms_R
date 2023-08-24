@@ -1,5 +1,7 @@
 #' @useDynLib perms C_get_log_perms_bioassay
-
+#' @import doParallel
+#' @import parallel
+#' @import foreach
 #' @title get_log_perms_bioassay
 #' @description Computes log permanents associated with simulated latent variables X with bioassay data.
 #' Each row of the matrix X contains a random sample of size n from the data model. 
@@ -21,6 +23,52 @@
 #' @return Numpy array of log permanents, each element associated to the corresponding row in X.
 #' A zero valued permanent is indicated by a -1.
 #' @examples
+#' ## Dirichlet toy model
+#' library(perms)
+#' set.seed(1996)
+#' n = 500
+#' num_trials = 10
+#' levels = seq(-1, 1, length.out = num_trials)
+#' 
+#' trials = rep(n %/% num_trials, num_trials)
+#' successes = c(10, 26, 10, 20, 20, 19, 29, 24, 31, 33)
+#' 
+#' S = 200
+#' alpha = 1.0
+#' 
+#' get_X = function(S,n,alpha,seed){
+#'   set.seed(seed)
+#'   X = matrix(0, nrow = S, ncol = n)
+#'   for (s in 1:S) {
+#'     X[s,1] = rnorm(1)
+#'     for (i in 2:n) {
+#'       u = runif(1)
+#'       if(u < (alpha/(alpha+i-1))){
+#'         X[s,i] = rnorm(1)
+#'       }else{
+#'         if(i==2){
+#'           X[s,i] = X[s,1]
+#'         }else{
+#'           X[s,i] = sample(X[s, 1:(i-1)],size=1)
+#'         }
+#'       }
+#'       
+#'     }
+#'     
+#'   }
+#'   return(X)
+#' }
+#' 
+#' seed = 1996
+#' X = get_X(S, n, alpha, seed)
+#' logperms = get_log_perms_bioassay(X, levels, successes, trials, n, num_trials, S,
+#'            debug=FALSE,parallel = FALSE)
+#' logml = get_log_ML_bioassay(logperms, successes, trials, n, num_trials, S)
+#' 
+#' proportion = sum(logperms>-1) / S*100
+#' 
+#' proportion 
+#' logml
 #' @references
 #' [1] Christensen, D (2023). Inference for Bayesian nonparametric models with binary response data via permutation counting. Bayesian Analysis, Advance online publication, DOI: 10.1214/22-BA1353.
 #' @export
@@ -102,6 +150,7 @@ get_log_perms_bioassay= function(X, levels, successes, trials, n, num_trials, S,
       }
       
       registerDoParallel(cores=num_cores)
+      i = 0
       res = foreach (i=1:num_cores,.combine = c) %dopar% {
         library(perms)
         St = Sdiv

@@ -26,6 +26,19 @@ likelihood using the formula (2.3) in [1]. It is assumed that there are no repea
 If the data contain repeated trials, then the appropriate log binomial factor must be added 
 to the output of this function.
 }
+\examples{
+library(perms)
+set.seed(1996)
+n = 100
+t = seq(0, 1, length.out=n)
+y = c(rep(0, n/2), rep(1, n/2))
+S = 200
+X = matrix(runif(n*S),nrow = S, ncol = n)
+
+logperms = get_log_perms(X, t, y, n, S, debug = FALSE, parallel = FALSE, num_cores = NULL)
+logML = get_log_ML(logperms, n, S, FALSE)
+logML
+}
 \references{
 [1] Christensen, D (2023). Inference for Bayesian nonparametric models with binary response data via permutation counting. Bayesian Analysis, Advance online publication, DOI: 10.1214/22-BA1353.
 }

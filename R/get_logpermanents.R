@@ -1,5 +1,7 @@
 #' @useDynLib perms C_get_log_perms
-
+#' @import doParallel
+#' @import parallel
+#' @import foreach
 #' @title get_log_perms
 #' @description Computes log permanents associated with simulated latent variables.
 #' Each row of the S x n matrix X contains a random sample of size n from the data model. 
@@ -22,7 +24,19 @@
 #' @param num_cores (Optional) Specifies the number of cores to use if \code{parallel = TRUE}
 #' @return Numpy array of log permanents,each element associated to the corresponding row in X.
 #' A zero valued permanent is indicated by a -1.
-#' @examples
+#' @examples 
+#' library(perms)
+#' set.seed(1996)
+#' n = 100
+#' t = seq(0, 1, length.out=n)
+#' y = c(rep(0, n/2), rep(1, n/2))
+#' S = 200
+#' X = matrix(runif(n*S),nrow = S, ncol = n)
+#'
+#' logperms = get_log_perms(X, t, y, n, S, debug = FALSE, parallel = FALSE, 
+#'                          num_cores = NULL)
+#' logML = get_log_ML(logperms, n, S, FALSE)
+#' logML
 #' @references
 #' [1] Christensen, D (2023). Inference for Bayesian nonparametric models with binary response data via permutation counting. Bayesian Analysis, Advance online publication, DOI: 10.1214/22-BA1353.
 #' @export
@@ -109,6 +123,7 @@ get_log_perms= function(X, tt, y, n, S, debug=FALSE, parallel = TRUE, num_cores 
       
       
       registerDoParallel(cores=num_cores)
+      i = 0
       res = foreach (i=1:num_cores,.combine = c) %dopar% {
         library(perms)
         St = Sdiv

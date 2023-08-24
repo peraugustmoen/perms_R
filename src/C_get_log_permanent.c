@@ -262,7 +262,7 @@ SEXP C_get_log_perms(SEXP XSEXP, SEXP tSEXP, SEXP ySEXP, SEXP nSEXP, SEXP SSEXP,
 			}
 			
 			//return(XSEXP);
-			int result = reduction(alpha,  beta,  gamma, m, n, k, history,
+			reduction(alpha,  beta,  gamma, m, n, k, history,
 					   amount_history, &history_len, debug);
 
 
@@ -565,7 +565,7 @@ SEXP C_get_log_perms_bioassay(SEXP XSEXP, SEXP levelsSEXP, SEXP successesSEXP, S
 			}
 			
 			//return(XSEXP);
-			int result = reduction(alpha,  beta,  gamma, m, n, k, history,
+			reduction(alpha,  beta,  gamma, m, n, k, history,
 					   amount_history, &history_len, debug);
 
 

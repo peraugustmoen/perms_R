@@ -14,6 +14,17 @@
 #' @param debug If \code{TRUE}, debug information is printed. 
 #' @return The estimated log marginal likelihood.
 #' @examples
+#' library(perms)
+#' set.seed(1996)
+#' n = 100
+#' t = seq(0, 1, length.out=n)
+#' y = c(rep(0, n/2), rep(1, n/2))
+#' S = 200
+#' X = matrix(runif(n*S),nrow = S, ncol = n)
+#'
+#' logperms = get_log_perms(X, t, y, n, S, debug = FALSE, parallel = FALSE, num_cores = NULL)
+#' logML = get_log_ML(logperms, n, S, FALSE)
+#' logML
 #' @references
 #' [1] Christensen, D (2023). Inference for Bayesian nonparametric models with binary response data via permutation counting. Bayesian Analysis, Advance online publication, DOI: 10.1214/22-BA1353.
 #' @export
@@ -48,6 +59,52 @@ get_log_ML= function(logperms, n, S, debug=FALSE){
 #' @param debug If \code{TRUE}, debug information is printed. 
 #' @return The estimated log marginal likelihood.
 #' @examples
+#' ## Dirichlet toy model
+#' library(perms)
+#' set.seed(1996)
+#' n = 500
+#' num_trials = 10
+#' levels = seq(-1, 1, length.out = num_trials)
+#' 
+#' trials = rep(n %/% num_trials, num_trials)
+#' successes = c(10, 26, 10, 20, 20, 19, 29, 24, 31, 33)
+#' 
+#' S = 200
+#' alpha = 1.0
+#' 
+#' get_X = function(S,n,alpha,seed){
+#'   set.seed(seed)
+#'   X = matrix(0, nrow = S, ncol = n)
+#'   for (s in 1:S) {
+#'     X[s,1] = rnorm(1)
+#'     for (i in 2:n) {
+#'       u = runif(1)
+#'       if(u < (alpha/(alpha+i-1))){
+#'         X[s,i] = rnorm(1)
+#'       }else{
+#'         if(i==2){
+#'           X[s,i] = X[s,1]
+#'         }else{
+#'           X[s,i] = sample(X[s, 1:(i-1)],size=1)
+#'         }
+#'       }
+#'       
+#'     }
+#'     
+#'   }
+#'   return(X)
+#' }
+#' 
+#' seed = 1996
+#' X = get_X(S, n, alpha, seed)
+#' logperms = get_log_perms_bioassay(X, levels, successes, trials, n, num_trials, S,
+#'            debug=FALSE,parallel = FALSE)
+#' logml = get_log_ML_bioassay(logperms, successes, trials, n, num_trials, S)
+#' 
+#' proportion = sum(logperms>-1) / S*100
+#' 
+#' proportion 
+#' logml
 #' @references
 #' [1] Christensen, D (2023). Inference for Bayesian nonparametric models with binary response data via permutation counting. Bayesian Analysis, Advance online publication, DOI: 10.1214/22-BA1353.
 #' @export

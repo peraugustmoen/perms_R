@@ -587,50 +587,10 @@ int reduction(int * alpha, int * beta, int * gamma, int *m, int n, int *k, int *
 
 	int cc = 0;
 
-
-	while(1){
-		if(alpha[0]>n){
-			Rprintf("ERROR! alpha[0]>n\n");
-			Rprintf("=====\n");
-			Rprintf("alpha:\n");
-			print_int_vector(n, alpha);
-			Rprintf("beta:\n");
-			print_int_vector(n, beta);
-			Rprintf("gamma:\n");
-			print_int_vector(n, gamma);
-			Rprintf("m:\n");
-			print_int_vector(1, m);
-			Rprintf("k:\n");
-			print_int_vector(1, k);
-			Rprintf("=====\n");
-			return -1;
-		}
-		if((*k)<0){
-			Rprintf("ERROR! k<0\n");
-			Rprintf("=====\n");
-			Rprintf("alpha:\n");
-			print_int_vector(n, alpha);
-			Rprintf("beta:\n");
-			print_int_vector(n, beta);
-			Rprintf("gamma:\n");
-			print_int_vector(n, gamma);
-			Rprintf("m:\n");
-			print_int_vector(1, m);
-			Rprintf("k:\n");
-			print_int_vector(1, k);
-			Rprintf("=====\n");
-			return -1;
-		}
-		// if top trim possible
-		if((*m)>beta[0] && beta[0] > 0){
-			history[historycounter] = 0;
-			amount_history[2*historycounter] = beta[0];
-			(*m) = (*m)-beta[0];
-			beta[0]=0;
-			historycounter++;
-			if(debug){
-				Rprintf("TOP TRIM ->\n");
-				//print_int_vector(n, beta);
+	if(!reduced){
+		while(1){
+			if(alpha[0]>n){
+				Rprintf("ERROR! alpha[0]>n\n");
 				Rprintf("=====\n");
 				Rprintf("alpha:\n");
 				print_int_vector(n, alpha);
@@ -643,22 +603,10 @@ int reduction(int * alpha, int * beta, int * gamma, int *m, int n, int *k, int *
 				Rprintf("k:\n");
 				print_int_vector(1, k);
 				Rprintf("=====\n");
+				return -1;
 			}
-			
-			if(check_if_reduced(alpha, beta, gamma, 
-					  m, k)){break;}
-
-		}
-		// if bottom split possible
-		else if((*m)>gamma[0] && gamma[0] > 0){
-			history[historycounter] = 1;
-			amount_history[2*historycounter] = gamma[0];
-			(*m) = (*m) - gamma[0];
-			gamma[0] = 0;
-			historycounter++;
-			if(debug){
-				Rprintf("BOTTOM SPLIT ->\n");
-				//print_int_vector(n, beta);
+			if((*k)<0){
+				Rprintf("ERROR! k<0\n");
 				Rprintf("=====\n");
 				Rprintf("alpha:\n");
 				print_int_vector(n, alpha);
@@ -671,156 +619,208 @@ int reduction(int * alpha, int * beta, int * gamma, int *m, int n, int *k, int *
 				Rprintf("k:\n");
 				print_int_vector(1, k);
 				Rprintf("=====\n");
+				return -1;
 			}
-			
-			if(check_if_reduced(alpha, beta, gamma, 
-					  m, k)){break;}
+			// if top trim possible
+			if((*m)>beta[0] && beta[0] > 0){
+				history[historycounter] = 0;
+				amount_history[2*historycounter] = beta[0];
+				(*m) = (*m)-beta[0];
+				beta[0]=0;
+				historycounter++;
+				if(debug){
+					Rprintf("TOP TRIM ->\n");
+					//print_int_vector(n, beta);
+					Rprintf("=====\n");
+					Rprintf("alpha:\n");
+					print_int_vector(n, alpha);
+					Rprintf("beta:\n");
+					print_int_vector(n, beta);
+					Rprintf("gamma:\n");
+					print_int_vector(n, gamma);
+					Rprintf("m:\n");
+					print_int_vector(1, m);
+					Rprintf("k:\n");
+					print_int_vector(1, k);
+					Rprintf("=====\n");
+				}
+				
+				if(check_if_reduced(alpha, beta, gamma, 
+						  m, k)){break;}
+
+			}
+			// if bottom split possible
+			else if((*m)>gamma[0] && gamma[0] > 0){
+				history[historycounter] = 1;
+				amount_history[2*historycounter] = gamma[0];
+				(*m) = (*m) - gamma[0];
+				gamma[0] = 0;
+				historycounter++;
+				if(debug){
+					Rprintf("BOTTOM SPLIT ->\n");
+					//print_int_vector(n, beta);
+					Rprintf("=====\n");
+					Rprintf("alpha:\n");
+					print_int_vector(n, alpha);
+					Rprintf("beta:\n");
+					print_int_vector(n, beta);
+					Rprintf("gamma:\n");
+					print_int_vector(n, gamma);
+					Rprintf("m:\n");
+					print_int_vector(1, m);
+					Rprintf("k:\n");
+					print_int_vector(1, k);
+					Rprintf("=====\n");
+				}
+				
+				if(check_if_reduced(alpha, beta, gamma, 
+						  m, k)){break;}
+			}
+
+			// if bottom left merge
+			else if(beta[0]==0 && gamma[0]==0){
+				history[historycounter] = 2;
+				amount_history[2*historycounter] = alpha[0];
+				amount_history[2*historycounter+1] = alpha[1];
+
+				//shift alpha:
+				alpha[0] = alpha[0]+ alpha[1];
+				for (int i = 1; i < (*k-1); ++i)
+				{
+					alpha[i] = alpha[i+1];
+				}
+
+				for (int i = 0; i < (*k-2); ++i)
+				{
+					beta[i] = beta[i+1];
+					gamma[i] = gamma[i+1];
+				}
+				(*k)--;
+				historycounter++;
+				if(debug){
+					Rprintf("LEFT MERGE ->\n");
+					//print_int_vector(n, beta);
+					Rprintf("=====\n");
+					Rprintf("alpha:\n");
+					print_int_vector(n, alpha);
+					Rprintf("beta:\n");
+					print_int_vector(n, beta);
+					Rprintf("gamma:\n");
+					print_int_vector(n, gamma);
+					Rprintf("m:\n");
+					print_int_vector(1, m);
+					Rprintf("k:\n");
+					print_int_vector(1, k);
+					Rprintf("=====\n");	
+				}
+				if(check_if_reduced(alpha, beta, gamma, 
+						  m, k)){break;}
+			}		
+			// reduced = check_if_reduced(alpha, beta, gamma, 
+			// 			  m, k);
+			/*if(reduced){
+				break;
+			}*/
+			// if bottom bottom trim
+			else if((*m) > gamma[(*k)-2] && gamma[(*k)-2]>0){
+				history[historycounter] = 3;
+				amount_history[2*historycounter] = gamma[(*k)-2];
+
+				(*m) = (*m) - gamma[(*k)-2];
+				gamma[(*k)-2]=0;
+				historycounter++;
+				if(debug){
+					Rprintf("BOTTOM TRIM ->\n");
+					//print_int_vector(n, beta);
+					Rprintf("=====\n");
+					Rprintf("alpha:\n");
+					print_int_vector(n, alpha);
+					Rprintf("beta:\n");
+					print_int_vector(n, beta);
+					Rprintf("gamma:\n");
+					print_int_vector(n, gamma);
+					Rprintf("m:\n");
+					print_int_vector(1, m);
+					Rprintf("k:\n");
+					print_int_vector(1, k);
+					Rprintf("=====\n");
+
+				}
+				if(check_if_reduced(alpha, beta, gamma, 
+						  m, k)){break;}
+			}
+
+			// if top split possible
+			else if( (*m)> beta[(*k)-2] && beta[(*k)-2]>0 ){
+				history[historycounter] = 4;
+				amount_history[2*historycounter] = beta[(*k)-2];
+				(*m) = (*m) - beta[(*k)-2];
+				beta[(*k)-2]=0;
+				historycounter++;
+
+				if(debug){
+					Rprintf("TOP SPLIT ->\n");
+					//print_int_vector(n, beta);
+					Rprintf("=====\n");
+					Rprintf("alpha:\n");
+					print_int_vector(n, alpha);
+					Rprintf("beta:\n");
+					print_int_vector(n, beta);
+					Rprintf("gamma:\n");
+					print_int_vector(n, gamma);
+					Rprintf("m:\n");
+					print_int_vector(1, m);
+					Rprintf("k:\n");
+					print_int_vector(1, k);
+					Rprintf("=====\n");
+
+				}
+				if(check_if_reduced(alpha, beta, gamma, 
+						  m, k)){break;}
+			}
+
+			// if right merge possible
+			else if(beta[(*k)-2]==0 && gamma[(*k)-2]==0 ){
+				history[historycounter] = 5;
+				amount_history[2*historycounter] = alpha[(*k)-2];
+				amount_history[2*historycounter+1] = alpha[(*k)-1];
+
+
+				alpha[(*k)-2] = alpha[(*k)-2] + alpha[(*k)-1];
+				(*k)--;
+
+				historycounter++;
+
+				if(debug){
+					Rprintf("RIGHT MERGE ->\n");
+					//print_int_vector(n, beta);
+					Rprintf("=====\n");
+					Rprintf("alpha:\n");
+					print_int_vector(n, alpha);
+					Rprintf("beta:\n");
+					print_int_vector(n, beta);
+					Rprintf("gamma:\n");
+					print_int_vector(n, gamma);
+					Rprintf("m:\n");
+					print_int_vector(1, m);
+					Rprintf("k:\n");
+					print_int_vector(1, k);
+					Rprintf("=====\n");
+				}
+				if(check_if_reduced(alpha, beta, gamma, 
+						  m, k)){break;}
+			}
+			else{
+				Rprintf("ERROR!");
+				return -1;
+				break;
+			}		
+
+			cc++;
+
+
 		}
-
-		// if bottom left merge
-		else if(beta[0]==0 && gamma[0]==0){
-			history[historycounter] = 2;
-			amount_history[2*historycounter] = alpha[0];
-			amount_history[2*historycounter+1] = alpha[1];
-
-			//shift alpha:
-			alpha[0] = alpha[0]+ alpha[1];
-			for (int i = 1; i < (*k-1); ++i)
-			{
-				alpha[i] = alpha[i+1];
-			}
-
-			for (int i = 0; i < (*k-2); ++i)
-			{
-				beta[i] = beta[i+1];
-				gamma[i] = gamma[i+1];
-			}
-			(*k)--;
-			historycounter++;
-			if(debug){
-				Rprintf("LEFT MERGE ->\n");
-				//print_int_vector(n, beta);
-				Rprintf("=====\n");
-				Rprintf("alpha:\n");
-				print_int_vector(n, alpha);
-				Rprintf("beta:\n");
-				print_int_vector(n, beta);
-				Rprintf("gamma:\n");
-				print_int_vector(n, gamma);
-				Rprintf("m:\n");
-				print_int_vector(1, m);
-				Rprintf("k:\n");
-				print_int_vector(1, k);
-				Rprintf("=====\n");	
-			}
-			if(check_if_reduced(alpha, beta, gamma, 
-					  m, k)){break;}
-		}		
-		// reduced = check_if_reduced(alpha, beta, gamma, 
-		// 			  m, k);
-		/*if(reduced){
-			break;
-		}*/
-		// if bottom bottom trim
-		else if((*m) > gamma[(*k)-2] && gamma[(*k)-2]>0){
-			history[historycounter] = 3;
-			amount_history[2*historycounter] = gamma[(*k)-2];
-
-			(*m) = (*m) - gamma[(*k)-2];
-			gamma[(*k)-2]=0;
-			historycounter++;
-			if(debug){
-				Rprintf("BOTTOM TRIM ->\n");
-				//print_int_vector(n, beta);
-				Rprintf("=====\n");
-				Rprintf("alpha:\n");
-				print_int_vector(n, alpha);
-				Rprintf("beta:\n");
-				print_int_vector(n, beta);
-				Rprintf("gamma:\n");
-				print_int_vector(n, gamma);
-				Rprintf("m:\n");
-				print_int_vector(1, m);
-				Rprintf("k:\n");
-				print_int_vector(1, k);
-				Rprintf("=====\n");
-
-			}
-			if(check_if_reduced(alpha, beta, gamma, 
-					  m, k)){break;}
-		}
-
-		// if top split possible
-		else if( (*m)> beta[(*k)-2] && beta[(*k)-2]>0 ){
-			history[historycounter] = 4;
-			amount_history[2*historycounter] = beta[(*k)-2];
-			(*m) = (*m) - beta[(*k)-2];
-			beta[(*k)-2]=0;
-			historycounter++;
-
-			if(debug){
-				Rprintf("TOP SPLIT ->\n");
-				//print_int_vector(n, beta);
-				Rprintf("=====\n");
-				Rprintf("alpha:\n");
-				print_int_vector(n, alpha);
-				Rprintf("beta:\n");
-				print_int_vector(n, beta);
-				Rprintf("gamma:\n");
-				print_int_vector(n, gamma);
-				Rprintf("m:\n");
-				print_int_vector(1, m);
-				Rprintf("k:\n");
-				print_int_vector(1, k);
-				Rprintf("=====\n");
-
-			}
-			if(check_if_reduced(alpha, beta, gamma, 
-					  m, k)){break;}
-		}
-
-		// if right merge possible
-		else if(beta[(*k)-2]==0 && gamma[(*k)-2]==0 ){
-			history[historycounter] = 5;
-			amount_history[2*historycounter] = alpha[(*k)-2];
-			amount_history[2*historycounter+1] = alpha[(*k)-1];
-
-
-			alpha[(*k)-2] = alpha[(*k)-2] + alpha[(*k)-1];
-			(*k)--;
-
-			historycounter++;
-
-			if(debug){
-				Rprintf("RIGHT MERGE ->\n");
-				//print_int_vector(n, beta);
-				Rprintf("=====\n");
-				Rprintf("alpha:\n");
-				print_int_vector(n, alpha);
-				Rprintf("beta:\n");
-				print_int_vector(n, beta);
-				Rprintf("gamma:\n");
-				print_int_vector(n, gamma);
-				Rprintf("m:\n");
-				print_int_vector(1, m);
-				Rprintf("k:\n");
-				print_int_vector(1, k);
-				Rprintf("=====\n");
-			}
-			if(check_if_reduced(alpha, beta, gamma, 
-					  m, k)){break;}
-		}
-		else{
-			Rprintf("ERROR!");
-			return -1;
-			break;
-		}		
-
-		cc++;
-
-
 	}
-
 	//Rprintf("Terminated at iter %d\n", cc);
 	
 	*history_len = historycounter;

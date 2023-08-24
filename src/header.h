@@ -48,16 +48,21 @@ SEXP C_get_log_perms(SEXP , SEXP , SEXP , SEXP , SEXP,SEXP,SEXP);
 SEXP C_get_log_perms_bioassay(SEXP , SEXP ,SEXP , SEXP ,
 	SEXP , SEXP , SEXP ,
 	SEXP);
+
+SEXP C_get_log_ML(SEXP, SEXP , SEXP, SEXP );
+SEXP C_get_log_ML_bioassay(SEXP , SEXP , SEXP , SEXP , 
+	SEXP , SEXP , SEXP );
+
 double Clog_sum_exp(double * , int, double );
 double Csparse_log_sum_exp(dictionary *);
 SEXP C_wrapper_log_sum_exp(SEXP, SEXP );
-SEXP test();
+
 
 int nonzero_perm(double * , double * , double * , int );
 
 void get_union(int, double *, double * , int * , double *);
 
-SEXP C_test_get_alphabetagamma();
+
 SEXP C_test_get_alphabetagamma_input(SEXP,SEXP, SEXP , SEXP, SEXP );
 void update_dict(pair, double, dictionary *);
 void print_sparse_matrix(dictionary * );
@@ -154,55 +159,4 @@ void get_alphabetagamma(double * , int , double * , double * , double * , int , 
 
 char check_if_reduced(int *, int *, int *, 
 					  int * , int * );
-
-SEXP C_test_sparse_functions_with_example();
-// #define MADCONST 1.4826
-// 
-// void internal_matmult(double *,
-//                       double *,
-//                       double *,
-//                       int, int, int, int);
-// 
-// void internal_matmultrightT(double *,
-//                             double *,
-//                             int , int );
-// 
-// void internal_matmultleftT(double * ,
-//                            double * ,
-//                            int , int );
-// 
-// double * internal_power_method(double *, int, double,
-//                                int , double * , double * ,int  );
-//   
-// 
-// void CUSUM(double *,double * , int , int , int );
-// void singleCUSUM(double *, double *, int , int , int , int);
-// 
-// void rescale_variance(double *, double* , int, int, double *);
-// 
-// // Sorting
-//     
-// void insertSort (double * , int , int );
-// 
-// 
-// void sort_k_largest(double * , int , int, int);
-// void sort_k_largest_abs(double * , int , int, int);
-// void sort_k_largest_int(int*, int , int, int);
-// SEXP sort_k_largest_R(SEXP, SEXP, SEXP, SEXP);
-// 
-// 
-// 
-// 
-// 
-// //function to swap variable
-// void swap(double*, double*);
-// int partition (double *, int, int);
-// int quickselect(double * , int, int, int);
-// void rec_partial_quicksort(double *, int, int, int);
-// 
-// void partial_quicksort(double *, int , int);
-// 
-// 
-// SEXP partial_quicksort_R(SEXP , SEXP, SEXP);
-
 

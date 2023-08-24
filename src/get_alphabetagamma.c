@@ -175,7 +175,7 @@ void get_alphabetagamma(double * x, int n, double * a, double * b, double * a_un
 }
 
 
- SEXP C_test_get_alphabetagamma(){
+/* SEXP C_test_get_alphabetagamma(){
 
 
     int n = 4;
@@ -277,7 +277,7 @@ void get_alphabetagamma(double * x, int n, double * a, double * b, double * a_un
 
     return(mSEXP);
 
-}
+}*/
 
 
 

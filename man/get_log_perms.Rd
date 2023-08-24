@@ -4,16 +4,7 @@
 \alias{get_log_perms}
 \title{get_log_perms}
 \usage{
-get_log_perms(
-  X,
-  tt,
-  y,
-  n,
-  S,
-  debug = FALSE,
-  parallel = FALSE,
-  num_cores = NULL
-)
+get_log_perms(X, tt, y, n, S, debug = FALSE, parallel = TRUE, num_cores = NULL)
 }
 \arguments{
 \item{X}{A matrix of dimension S x n, in which each row contains a sample from
@@ -48,6 +39,20 @@ If there are more covariates or the problem is phrased as binary
 classification (see Section 5 in [1]), then t is an S x n matrix
 since the threshold values change in each iteration. The function returns
 a vector of log permanents corresponding to each sample in X.
+}
+\examples{
+library(perms)
+set.seed(1996)
+n = 100
+t = seq(0, 1, length.out=n)
+y = c(rep(0, n/2), rep(1, n/2))
+S = 200
+X = matrix(runif(n*S),nrow = S, ncol = n)
+
+logperms = get_log_perms(X, t, y, n, S, debug = FALSE, parallel = FALSE, 
+                         num_cores = NULL)
+logML = get_log_ML(logperms, n, S, FALSE)
+logML
 }
 \references{
 [1] Christensen, D (2023). Inference for Bayesian nonparametric models with binary response data via permutation counting. Bayesian Analysis, Advance online publication, DOI: 10.1214/22-BA1353.
