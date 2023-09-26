@@ -18,6 +18,8 @@ void get_union(int n, double * a, double * b, int * len_a_union_b, double * a_un
         b_counter++;
     }
 
+    
+
     while(( a_counter <n )|| ( b_counter < n)){
         if(a_counter>=n){
             if(a_union_b[counter-1] < b[b_counter]){

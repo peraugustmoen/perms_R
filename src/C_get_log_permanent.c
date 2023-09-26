@@ -125,7 +125,7 @@ SEXP C_get_log_perms(SEXP XSEXP, SEXP tSEXP, SEXP ySEXP, SEXP nSEXP, SEXP SSEXP,
 
 		if(constant_ts){
 		    if(!nonzero_perm(x, a,  b, n)){
-				logperms[s] = -1;
+				logperms[s] = NA_REAL;
 				continue;
 			}
 			get_alphabetagamma(x, n, a, b, a_union_b, len_a_union_b, alpha, 
@@ -151,7 +151,7 @@ SEXP C_get_log_perms(SEXP XSEXP, SEXP tSEXP, SEXP ySEXP, SEXP nSEXP, SEXP SSEXP,
 			R_qsort(b, 1, n);
 
 			if(!nonzero_perm(x, a,  b, n)){
-				logperms[s] = -1;
+				logperms[s] = NA_REAL;
 				continue;
 			}
 			memset(a_union_b, 0, sizeof(double)*2*n);
@@ -163,7 +163,7 @@ SEXP C_get_log_perms(SEXP XSEXP, SEXP tSEXP, SEXP ySEXP, SEXP nSEXP, SEXP SSEXP,
 			get_alphabetagamma(x, n, a, b, a_union_b, len_a_union_b, alpha, 
 		    beta, gamma,  k, m, debug);
 		    if(!nonzero_perm(x, a,  b, n)){
-				logperms[s] = -1;
+				logperms[s] = NA_REAL;
 				continue;
 			}
 			if((*k)==1){
@@ -464,7 +464,7 @@ SEXP C_get_log_perms_bioassay(SEXP XSEXP, SEXP levelsSEXP, SEXP successesSEXP, S
 
 
 	    if(!nonzero_perm(x, a,  b, n)){
-			logperms[s] = -1;
+			logperms[s] = NA_REAL;
 			continue;
 		}
 		get_alphabetagamma(x, n, a, b, a_union_b, len_a_union_b, alpha, 

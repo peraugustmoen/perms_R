@@ -8,20 +8,17 @@
 #' The observed data are represented as (levels, successes, trials), where levels are the different
 #'  levels at which trials were conducted, successes is the vector of the number of successes per level, 
 #'  and trials is the vector of the total number of trials per level. The function returns a vector of
-#'  log permanents corresponding to each sample.
+#'  log permanents corresponding to each sample. Note that n must be equal to the sum of the entries of trials.
 #' @param X A matrix of dimension S x n, in which each row contains a sample from
 #' the data model.
-#' @param levels A vector of length n containing the levels at which trials were conducted.
-#' @param successes A vector of length n containing the number of successful trials at each level.
-#' @param trials A vector of length n containing the number of trials at each level.
-#' @param n Sample size.
-#' @param num_trials Number of different trials. 
-#' @param S Number of samples from the data model. That is, the number of iterations in the estimator.
+#' @param levels A vector containing the levels at which trials were conducted.
+#' @param successes A vector containing the number of successful trials at each level. 
+#' @param trials A vector containing the number of trials at each level.
 #' @param debug If \code{TRUE}, debug information is printed. 
 #' @param parallel If \code{TRUE}, computation is run on several cores
 #' @param num_cores (Optional) Specifies the number of cores to use if \code{parallel = TRUE}
 #' @return Numpy array of log permanents, each element associated to the corresponding row in X.
-#' A zero valued permanent is indicated by a -1.
+#' A zero valued permanent is indicated by a NA value.
 #' @examples
 #' ## Dirichlet toy model
 #' library(perms)
@@ -61,75 +58,66 @@
 #' 
 #' seed = 1996
 #' X = get_X(S, n, alpha, seed)
-#' logperms = get_log_perms_bioassay(X, levels, successes, trials, n, num_trials, S,
+#' log_perms = get_log_perms_bioassay(X, levels, successes, trials,
 #'            debug=FALSE,parallel = FALSE)
-#' logml = get_log_ML_bioassay(logperms, successes, trials, n, num_trials, S)
-#' 
-#' proportion = sum(logperms>-1) / S*100
+#' proportion = sum(!is.na(log_perms)) / S*100
 #' 
 #' proportion 
-#' logml
 #' @references
 #' [1] Christensen, D (2023). Inference for Bayesian nonparametric models with binary response data via permutation counting. Bayesian Analysis, Advance online publication, DOI: 10.1214/22-BA1353.
 #' @export
-get_log_perms_bioassay= function(X, levels, successes, trials, n, num_trials, S, debug=FALSE, parallel = TRUE, num_cores = NULL){
+get_log_perms_bioassay= function(X, levels, successes, trials, debug=FALSE, parallel = TRUE, num_cores = NULL){
   
   # X is n times T
-  if(!is.vector(levels) || !is.vector(successes) || !is.vector(trials)){
-    stop("levels, successes, trials must all be vectors")
-  }
-  if(length(levels)!= num_trials){
-    stop("levels must have length num_trials")
-  }
-  if(length(trials)!= num_trials){
-    stop("trials must have length num_trials")
-  }
-  if(length(successes)!= num_trials){
-    stop("successes must have length num_trials")
-  }
-  if(sum(trials)!= n){
-    stop("sum of all elements of trials must be equal to n")
-  }
-    
+  n = 1
+  num_trials = 1
+  S = 1
   if(is.vector(X)){
     
     if(debug){
-      print("X is input as vector")
+      cat("X is input as vector\n")
     }
-    if(n != length(X)){
-      stop("X must have length n when given as vector")
-    }
-    if(S != 1){
-      stop("When S>1, X must be an S x n matrix")
-    }
-    
-    
-    
-    
-    res = .Call(C_get_log_perms_bioassay, (X[]), as.numeric(levels), as.integer(successes), as.integer(trials), as.integer(n), as.integer(num_trials),as.integer(S), as.integer(debug))
+    n = length(X)
+    S = 1
     
   }else if(is.matrix(X)){
     if(debug){
-      print("X is input as matrix:")
+      cat("X is input as matrix\n")
     }
-    
-    if(S !=dim(X)[1] || n != dim(X)[2]){
-      stop("X must be S x n whenever S>1")
-    }
-    if(S <= 1){
-      stop("When X is a matrix, S must be >1")
-    }
-    
-    
-    
+    S = dim(X)[1]
+    n = dim(X)[2]
+  }else{
+    stop("Input X must be an S x n matrix, or a vector of length n if S = 1")
+  }
+  
+  if(!is.vector(levels) || !is.vector(successes) || !is.vector(trials)){
+    stop("levels, successes, trials must all be vectors")
+  }
+  
+  num_trials = length(levels)
+  
+  if(length(trials)!= num_trials){
+    stop("trials must have the same length as levels")
+  }
+  if(length(successes)!= num_trials){
+    stop("successes must have the same length as levels")
+  }
+  if(sum(trials)!= n){
+    stop("The sum of all elements of trials must be equal to n")
+  }
+  
+  if(is.vector(X)){
+    res = .Call(C_get_log_perms_bioassay, as.numeric(X[]), as.numeric(levels), as.integer(successes), as.integer(trials), as.integer(n), as.integer(num_trials),as.integer(S), as.integer(debug))
+  }
+  else{
     if(!parallel){
-      res = .Call(C_get_log_perms_bioassay, t(X[]),as.numeric(levels), as.integer(successes), as.integer(trials), as.integer(n), as.integer(num_trials),as.integer(S), as.integer(debug))
+      res = .Call(C_get_log_perms_bioassay, as.numeric(t(X[])),as.numeric(levels), as.integer(successes), as.integer(trials), as.integer(n), as.integer(num_trials),as.integer(S), as.integer(debug))
     }else{
-      #print("par")
+
       if(is.null(num_cores)){
         num_cores <- detectCores()
         if(debug){
-          print(sprintf("Registered %d cores\n", as.integer(num_cores)))
+          cat(sprintf("Registered %d cores\n", as.integer(num_cores)))
         }
       }
       
@@ -157,15 +145,13 @@ get_log_perms_bioassay= function(X, levels, successes, trials, n, num_trials, S,
         if(i<=rest){
           St= St+1
         }
-        .Call(C_get_log_perms_bioassay, t(X[starts[i]:stops[i],]), as.numeric(levels), as.integer(successes), as.integer(trials), as.integer(n), as.integer(num_trials),as.integer(St), as.integer(debug))
+        .Call(C_get_log_perms_bioassay, as.numeric(t(X[starts[i]:stops[i],])), as.numeric(levels), as.integer(successes), as.integer(trials), as.integer(n), as.integer(num_trials),as.integer(St), as.integer(debug))
       }
       
     }
     
   }
-  else{
-    stop("Input X must be an S x n matrix, or a vector of length n if S = 1")
-  }
+  
   
   
   return(res)

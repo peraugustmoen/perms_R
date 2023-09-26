@@ -3,16 +3,16 @@
 
 #' @title get_log_ML
 #' @description Computes the log marginal likelihood of the data from the log permanents.
-#' Given the computed log permanents logperms, this function computes the log marginal 
+#' Given the computed log permanents log_perms, this function computes the log marginal 
 #' likelihood using the formula (2.3) in [1]. It is assumed that there are no repeated trials.
 #' If the data contain repeated trials, then the appropriate log binomial factor must be added 
 #' to the output of this function.
-#' @param logperms A vector length n containing the computed log permanents, where a zero permanent
-#'  is indicated by a -1.
+#' @param log_perms A vector length n containing the computed log permanents, where a zero permanent
+#'  is indicated by a NA value.
 #' @param n Sample size. 
-#' @param S Number of samples from the data model. That is, the number of iterations in the estimator.
 #' @param debug If \code{TRUE}, debug information is printed. 
-#' @return The estimated log marginal likelihood.
+#' @return The estimated log marginal likelihood. A NA value is returned if there are no non-zero
+#' numbers. 
 #' @examples
 #' library(perms)
 #' set.seed(1996)
@@ -22,22 +22,24 @@
 #' S = 200
 #' X = matrix(runif(n*S),nrow = S, ncol = n)
 #'
-#' logperms = get_log_perms(X, t, y, n, S, debug = FALSE, parallel = FALSE, num_cores = NULL)
-#' logML = get_log_ML(logperms, n, S, FALSE)
-#' logML
+#' log_perms = get_log_perms(X, t, y, debug = FALSE, parallel = TRUE, num_cores = NULL)
+#'
+#' num_nonzero_perms = sum(!is.na(log_perms))
+#' num_nonzero_perms
+#'
+#' log_ML = get_log_ML(log_perms, n, FALSE)
+#' log_ML
 #' @references
 #' [1] Christensen, D (2023). Inference for Bayesian nonparametric models with binary response data via permutation counting. Bayesian Analysis, Advance online publication, DOI: 10.1214/22-BA1353.
 #' @export
-get_log_ML= function(logperms, n, S, debug=FALSE){
+get_log_ML= function(log_perms, n, debug=FALSE){
   
-  if(!is.vector(logperms)){
-    stop("logperms must be a vector")
+  if(!is.vector(log_perms)){
+    stop("log_perms must be a vector")
   }
-  if(length(logperms)!= S){
-    stop("logperms must have length S")
-  }
+  S = length(log_perms)
   
-  res = .Call(C_get_log_ML, as.numeric(logperms),  as.integer(n), as.integer(S), as.integer(debug))
+  res = .Call(C_get_log_ML, as.numeric(log_perms),  as.integer(n), as.integer(S), as.integer(debug))
   
   return(res)
 }
@@ -45,19 +47,18 @@ get_log_ML= function(logperms, n, S, debug=FALSE){
 
 #' @title get_log_ML_bioassay
 #' @description Computes the log marginal likelihood of bioassay data from the log permanents.
-#' Given the computed log permanents logperms, this function computes the log marginal likelihood
+#' Given the computed log permanents log_perms, this function computes the log marginal likelihood
 #' using the formula (2.3) in [1]. It takes care of repeated trials by adding the appropriate 
 #' log binomial factor.
-#' @param logperms A vector length n containing the computed log permanents, where a zero permanent
-#'  is indicated by a -1.
+#' @param log_perms A vector length n containing the computed log permanents, where a zero permanent
+#'  is indicated by a NA value.
 #' @param successes A vector of length n contatining the number of successful trials at
 #' each level.
 #' @param trials A vector of length n containing the number of trials at each level.
 #' @param n Sample size. 
-#' @param num_trials Number of different trials.  
-#' @param S Number of samples from the data model. That is, the number of iterations in the estimator.
 #' @param debug If \code{TRUE}, debug information is printed. 
-#' @return The estimated log marginal likelihood.
+#' @return The estimated log marginal likelihood. A NA value is returned if there are no non-zero
+#' numbers. 
 #' @examples
 #' ## Dirichlet toy model
 #' library(perms)
@@ -97,35 +98,37 @@ get_log_ML= function(logperms, n, S, debug=FALSE){
 #' 
 #' seed = 1996
 #' X = get_X(S, n, alpha, seed)
-#' logperms = get_log_perms_bioassay(X, levels, successes, trials, n, num_trials, S,
+#' log_perms = get_log_perms_bioassay(X, levels, successes, trials,
 #'            debug=FALSE,parallel = FALSE)
-#' logml = get_log_ML_bioassay(logperms, successes, trials, n, num_trials, S)
+#' log_ml = get_log_ML_bioassay(log_perms, successes, trials, n)
 #' 
-#' proportion = sum(logperms>-1) / S*100
+#' proportion = sum(!is.na(log_perms)) / S*100
 #' 
 #' proportion 
-#' logml
+#' log_ml
 #' @references
 #' [1] Christensen, D (2023). Inference for Bayesian nonparametric models with binary response data via permutation counting. Bayesian Analysis, Advance online publication, DOI: 10.1214/22-BA1353.
 #' @export
-get_log_ML_bioassay= function(logperms, successes, trials, n, num_trials, S, debug=FALSE){
+get_log_ML_bioassay= function(log_perms, successes, trials, n, debug=FALSE){
   
-  if(!is.vector(logperms)){
-    stop("logperms must be a vector")
+  if(!is.vector(log_perms)){
+    stop("log_perms must be a vector")
   }
-  if(length(logperms)!= S){
-    stop("logperms must have length S")
+  if( !is.vector(successes) || !is.vector(trials)){
+    stop("successes and trials must all be vectors")
   }
-  if(length(successes)!= num_trials){
-    stop("successes must have length num_trials")
-  }
+  
+  S = length(log_perms)
+  num_trials = length(successes)
+  
   if(length(trials)!= num_trials){
-    stop("trials must have length num_trials")
+    stop("trials must have same length as successes")
   }
+  
   if(sum(trials)!= n){
-    stop("the sum of trials must be equal to n")
+    stop("The sum of trials must be equal to n")
   }
-  res = .Call(C_get_log_ML_bioassay, as.numeric(logperms),  as.integer(successes), as.integer(trials), 
+  res = .Call(C_get_log_ML_bioassay, as.numeric(log_perms),  as.integer(successes), as.integer(trials), 
               as.integer(n), as.integer(num_trials),as.integer(S), as.integer(debug))
   
   return(res)

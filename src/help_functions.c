@@ -252,10 +252,10 @@ void print_float_vector(int len,  double * vec) {
 
 double Clog_sum_exp(double * array, int len, double maxval){
 
-	// ignore neg values
+	// ignore NAN and negative values
 
 	if(maxval<0){
-		return -1;
+		return NA_REAL;
 	}
 
 	double exp_result = 0;
@@ -264,32 +264,38 @@ double Clog_sum_exp(double * array, int len, double maxval){
 
 	for (int i = 0; i < len; ++i)
 	{
-		if(array[i]<0){
+		if(ISNAN(array[i]))
+		{
 			continue;
 		}
+		else if(array[i]<0){
+			continue;
+		}	
 
 		exp_result += exp(array[i] - maxval);
 	}
 
-	////Rprintf("res = %f\n", (maxval + log(exp_result)));
 	return (maxval + log(exp_result));
 }
 
 double Csparse_log_sum_exp(dictionary * dict){
 
-	// ignore neg values
+	// ignore NAN and negative values
 
 	double maxval = -1;
 
 	for (int z = 0; z < (*dict).used_len; ++z)
 	{
+		if(ISNAN((*dict).value_array[z])){
+			continue;
+		}
 		if((*dict).value_array[z]> maxval){
 			 maxval = (*dict).value_array[z];
 		}
 	}
 
 	if(maxval<0){
-		return -1;
+		return NA_REAL;
 	}
 
 	double exp_result = 0;
@@ -302,13 +308,11 @@ double Csparse_log_sum_exp(dictionary * dict){
 		exp_result += exp((*dict).value_array[z] - maxval);
 	}
 
-	////Rprintf("res = %f\n", (maxval + log(exp_result)));
 	return (maxval + log(exp_result));
 }
 
 SEXP C_wrapper_log_sum_exp(SEXP xSEXP, SEXP lenSEXP){
 
-	// ignore neg values
 
 	PROTECT(xSEXP);
 	PROTECT(lenSEXP);
@@ -322,6 +326,9 @@ SEXP C_wrapper_log_sum_exp(SEXP xSEXP, SEXP lenSEXP){
 	double maxval = -1;
 	for (int i = 0; i < len; ++i)
 	{
+		if(ISNAN(x[i])){
+			continue;
+		}
 		if(x[i]> maxval){
 			maxval = x[i];
 		}
