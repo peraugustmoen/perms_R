@@ -34,7 +34,7 @@ SEXP C_get_log_ML(SEXP logpermsSEXP, SEXP nSEXP, SEXP SSEXP, SEXP debugSEXP){
   		// all logperms are NAN
   		*result = NA_REAL;
   		UNPROTECT(5);
-  		error("Error! No non-zero perms in logperms");
+  		//error("Error! No non-zero perms in logperms");
   		return resultSEXP;
   	}
   	*result = Clog_sum_exp(logperms, S, maxval) - log((double)S);
@@ -97,7 +97,7 @@ SEXP C_get_log_ML_bioassay(SEXP logpermsSEXP, SEXP successesSEXP, SEXP trialsSEX
   	if(maxval<=-1){
   		*result = NA_REAL;
   		UNPROTECT(8);
-  		error("Error! No non-zero perms in logperms");
+  		//error("Error! No non-zero perms in logperms");
   		return resultSEXP;
   	}
   	*result = Clog_sum_exp(logperms, S, maxval) - log((double)S);
