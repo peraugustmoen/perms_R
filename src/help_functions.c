@@ -139,6 +139,7 @@ dictionary * init_dictionary(size_t init_size){
 void free_dictionary(dictionary * dict){
 	R_Free((*dict).array);
 	R_Free((*dict).value_array);
+	R_Free((*dict).table);
 	R_Free(dict);
 }
 

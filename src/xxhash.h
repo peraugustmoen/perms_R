@@ -169,6 +169,9 @@
  * xxHash prototypes and implementation
  */
 
+
+// added by Per August Moen: 
+#include <R.h>
 #if defined (__cplusplus)
 extern "C" {
 #endif
@@ -1774,13 +1777,15 @@ static void XXH_free(void* p) { (void)p; }
  * @internal
  * @brief Modify this function to use a different routine than malloc().
  */
-static XXH_MALLOCF void* XXH_malloc(size_t s) { return malloc(s); }
+
+// Modified by Per August Moen
+static XXH_MALLOCF void* XXH_malloc(size_t s) { return R_Calloc(s, char); }
 
 /*!
  * @internal
  * @brief Modify this function to use a different routine than free().
  */
-static void XXH_free(void* p) { free(p); }
+static void XXH_free(void* p) { R_Free(p); }
 
 #endif  /* XXH_NO_STDLIB */
 
